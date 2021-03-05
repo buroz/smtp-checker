@@ -10,16 +10,14 @@ import (
 	"net/smtp"
 )
 
-func init() {
-	flag.Parse()
-}
-
 func main() {
 	senderEmail := flag.String("sender-email", "", "Sender's email")
 	senderPassword := flag.String("sender-password", "", "Sender's password")
 	receiverEmail := flag.String("receiver-email", "", "Receiver's email")
 	smtpHost := flag.String("host", "", "Smtp host address")
 	smtpPort := flag.Int("port", 0, "Smtp port number")
+
+	flag.Parse()
 
 	from := mail.Address{"", *senderEmail}
 	to := mail.Address{"", *receiverEmail}
