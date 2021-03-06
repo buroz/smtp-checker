@@ -10,12 +10,27 @@ import (
 	"net/smtp"
 )
 
+func createConn(host, servername string, isSecure bool) (net.Conn, error) {
+	if isSecure {
+		// TLS config
+		tlsconfig := &tls.Config{
+			InsecureSkipVerify: true,
+			ServerName:         host,
+		}
+
+		return tls.Dial("tcp", servername, tlsconfig)
+	}
+
+	return net.Dial("tcp", servername)
+}
+
 func main() {
 	senderEmail := flag.String("sender-email", "", "Sender's email")
 	senderPassword := flag.String("sender-password", "", "Sender's password")
 	receiverEmail := flag.String("receiver-email", "", "Receiver's email")
 	smtpHost := flag.String("host", "", "Smtp host address")
 	smtpPort := flag.Int("port", 0, "Smtp port number")
+	smtpSecure := flag.Bool("secure", false, "Smtp over TLS")
 
 	flag.Parse()
 
@@ -45,16 +60,11 @@ func main() {
 
 	auth := smtp.PlainAuth("", *senderEmail, *senderPassword, host)
 
-	// TLS config
-	tlsconfig := &tls.Config{
-		InsecureSkipVerify: true,
-		ServerName:         host,
-	}
-
 	// Here is the key, you need to call tls.Dial instead of smtp.Dial
 	// for smtp servers running on 465 that require an ssl connection
 	// from the very beginning (no starttls)
-	conn, err := tls.Dial("tcp", servername, tlsconfig)
+
+	conn, err := createConn(host, servername, *smtpSecure)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -96,4 +106,5 @@ func main() {
 
 	c.Quit()
 
+	fmt.Println("Email Sent Successfully!")
 }
